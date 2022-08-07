@@ -2,7 +2,13 @@
 #define _QUEUE_H_
 #include <stdbool.h>
 
-typedef int Item;
+// typedef int Item;
+typedef struct item
+{
+    long arrive;
+    int processtime;
+} Item;
+
 
 #define MAXQUEUE    10
 
