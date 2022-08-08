@@ -125,7 +125,7 @@ void findpet(const Tree *pt)
 
 void droppet(Tree *pt)
 {
-    Item item;
+    Item temp;
     
     if (TreeIsEmpty(pt))
     {

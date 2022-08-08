@@ -14,7 +14,7 @@ static Trnode *MakeNode(const Item *pi);
 static bool ToLeft(const Item *i1, const Item *i2);
 static bool ToRight(const Item *i1, const Item *i2);
 static void AddNode(Trnode *new_node, Trnode *root);
-static void InOrder(const Trnode *root, void(*pfun)(Item item))
+static void InOrder(const Trnode *root, void(*pfun)(Item item));
 static Pair SeekItem(const Item *pi, const Tree *ptree);
 static void DeleteNode(Trnode **ptr);
 static void DeleteAllNodes(Trnode *ptr);
@@ -149,7 +149,7 @@ static void AddNode(Trnode *new_node, Trnode *root)
         if (root->right == NULL)
             root->right = new_node;
         else
-            AddItem(new_node, root->right);
+            AddNode(new_node, root->right);
     }
     else
     {
@@ -161,7 +161,7 @@ static void AddNode(Trnode *new_node, Trnode *root)
 static bool ToLeft(const Item *i1, const Item *i2)
 {
     int comp1;
-    if ((com1 = strcmp(i1->petname, i2->petname)) < 0)
+    if ((comp1 = strcmp(i1->petname, i2->petname)) < 0)
         return true;
     else if (comp1 == 0 &&
             strcmp(i1->petkind, i2->petkind) < 0)
@@ -173,7 +173,7 @@ static bool ToLeft(const Item *i1, const Item *i2)
 static bool ToRight(const Item *i1, const Item *i2)
 {
     int comp1;
-    if ((com1 = strcmp(i1->petname, i2->petname)) > 0)
+    if ((comp1 = strcmp(i1->petname, i2->petname)) > 0)
         return true;
     else if (comp1 == 0 &&
             strcmp(i1->petkind, i2->petkind) > 0)
