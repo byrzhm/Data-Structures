@@ -20,7 +20,7 @@ typedef struct node
 typedef Node *List;
 
 
-void InitiallizeList(List *plist);
+void InitializeList(List *plist);
 
 bool ListIsEmpty(const List *plist);
 

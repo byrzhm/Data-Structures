@@ -11,7 +11,7 @@ int main(void)
     List movies;
     Item temp;
 
-    InitiallizeList(&movies);
+    InitializeList(&movies);
     if (ListIsFull(&movies))
     {
         fprintf(stderr, "No memory available! Bye!\n");
