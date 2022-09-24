@@ -4,7 +4,7 @@
 
 static void CopyToNode(Item item, Node *pnode);
 
-void InitiallizeList(List *plist)
+void InitializeList(List *plist)
 {
     *plist = NULL;
     //not plist = NULL;

@@ -91,7 +91,7 @@ PtrNode initEmptyList ()
     PtrNode head = ( PtrNode )malloc( sizeof( struct Node ) );
     if( !head )
     {
-        printf("No memory avaliable.\n");
+        printf("No memory available.\n");
         return NULL;
     }   
     else
@@ -148,7 +148,7 @@ void insertEnd (PtrNode head, ElemType x)
     p = ( PtrNode )malloc( sizeof( struct Node ) );
 
     if( !p )
-        printf("Not inserted. No memory avaliable.\n");
+        printf("Not inserted. No memory available.\n");
     else
     {
         p->data = x;
@@ -172,7 +172,7 @@ void insertBegin(PtrNode head , ElemType x)
     p = ( PtrNode )malloc( sizeof( struct Node ) );
 
     if( !p )
-        printf("Not inserted. No memory avaliable.\n");
+        printf("Not inserted. No memory available.\n");
     else
     {
         p->data = x;
@@ -192,7 +192,7 @@ void insertUp(PtrNode head, ElemType x)
     p = ( PtrNode )malloc( sizeof( struct Node ) );
 
     if( !p )
-        printf("Not inserted. No memory avaliable.\n");
+        printf("Not inserted. No memory available.\n");
     else
     {
         p->data = x;
