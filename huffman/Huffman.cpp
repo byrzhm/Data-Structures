@@ -154,7 +154,7 @@ void HuffmanCodes(char* symbols, size_t* freqs, int size)
 }
 
 
-static struct pair
+struct pair
 {
 	MinHeapNode* ptr;
 	string str;
