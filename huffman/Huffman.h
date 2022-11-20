@@ -1,19 +1,29 @@
 #ifndef HUFFMAN_H
 #define HUFFMAN_H
 
-#include "BinaryIn.h"
-#include "BinaryOut.h"
-
-#include <iostream>
 #include <string>
-#include <queue>
 #include <vector>
-using namespace std;
 
-const int table_size = 256;
 
-struct MinHeapNode
-{
+using std::vector;
+using std::string;
+
+
+// 密码表的大小为 256
+extern const int table_size;
+
+
+class Huffman {
+public:
+	// 压缩文件
+	void compress(string filename);
+	// 解压缩文件
+	void decompress(string filename);
+};
+
+
+
+struct MinHeapNode {
 	// 编码前的字符
 	char symbol;
 
@@ -24,19 +34,12 @@ struct MinHeapNode
 	MinHeapNode* left, * right;
 
 	// 构造函数
-	MinHeapNode(char symbol, size_t freq) :symbol(symbol), freq(freq), left(nullptr), right(nullptr) {};
+	MinHeapNode(char symbol, size_t freq) :
+		symbol(symbol), freq(freq), left(nullptr), right(nullptr) {};
 	MinHeapNode(char symbol, size_t freq, MinHeapNode* left, MinHeapNode* right) :
 		symbol(symbol), freq(freq), left(left), right(right) {};
 };
 
-class Huffman
-{
-public:
-	// 压缩文件
-	void compress(string& filename);
-	// 解压缩文件
-	void decompress(string& filename);
-};
 
 
 // 建立最小堆需要的结构体compare
@@ -61,7 +64,7 @@ void HuffmanCodes(char* symbols, size_t* freqs, int size);
 MinHeapNode* buildTree(vector<size_t>& freqs);
 
 // 构造 Huffman 编码
-void buildCode(vector<string>& code_table, MinHeapNode* root, string huffman_code);
+void buildCode(vector<string>& code_table, MinHeapNode* root);
 
 // 在二进制文件中写入 Huffman 树
 void writeTree(MinHeapNode* root);
@@ -70,4 +73,5 @@ void writeTree(MinHeapNode* root);
 MinHeapNode* readTree();
 
 
-#endif // HUFFMAN_H
+
+#endif

@@ -1,80 +1,19 @@
-#include "Huffman.h"
+#include "huffman.h"
+#include "BinaryIn.h"
+#include "BinaryOut.h"
 
+#include <stack>
+#include <queue>
+#include <iostream>
 
-//class Huffman
-//{
-//public:
-//	// 压缩文件
-//	void compress(string& filename);
-//	// 解压缩文件
-//	void decompress(string& filename);
-//};
+using std::cin;
+using std::cout;
+using std::endl;
+using std::priority_queue;
+using std::stack;
 
-inline void Huffman::compress(string& filename)
-{
-	if (filename == "")
-		cin >> filename;
-	BinaryStdIn::readFile(filename);
-	Input input;
-	vector<size_t> freqs(table_size);
-
-	while (!BinaryStdIn::feof())
-	{
-		// 获取文件内容, 计算每个字节的频率
-		BinaryStdIn::readKB(input.content);
-		input.length += input.content.size();
-
-		for (int i = 0; i < input.content.size(); i++)
-			freqs[(unsigned char)input.content[i]]++;
-	}
-	BinaryStdIn::close();
-
-	// 统计完之后再次打开文件
-	BinaryStdIn::readFile(filename);
-
-	// 新建一个文件准备写入压缩后的文件
-	filename += ".z";
-	BinaryStdOut::writeFile(filename);
-
-	// 构建 Huffman 编码树
-	MinHeapNode* root = buildTree(freqs);
-
-	// 构建编码表
-	vector<string> st(table_size);
-	buildCode(st, root, "");
-
-	// 在二进制文件中写入编码树
-	writeTree(root);
-
-	// 在二进制文件中写入编码的字节数
-	BinaryStdOut::write(input.length);
-
-	// 用 Huffman code 编码输入文件
-	for (size_t i = 0; i < input.length; i++)
-	{
-		char ch = BinaryStdIn::readChar();
-		if (!BinaryStdIn::feof())
-		{
-			string code = st[ch];
-			for (int j = 0; j < code.size(); j++)
-				if (code.at(j) == '1')
-					BinaryStdOut::write(true);
-				else
-					BinaryStdOut::write(false);
-		}
-	}
-	BinaryStdOut::close();
-	BinaryStdIn::close();
-}
-
-
-
-inline void Huffman::decompress(string& filename)
-{
-
-}
-
-
+// 密码表的大小为 256
+const int table_size = 256;
 
 // 打印 Huffman 编码
 void PrintCodes(const MinHeapNode* root, string str)
@@ -95,6 +34,85 @@ void PrintCodes(const MinHeapNode* root, string str)
 bool IsLeaf(const MinHeapNode* root)
 {
 	return root->left == NULL && root->right == NULL;
+}
+
+
+
+
+// 构造 Huffman 树
+MinHeapNode* buildTree(vector<size_t>& freqs)
+{
+	priority_queue<MinHeapNode*, vector<MinHeapNode*>, compare> minHeap;
+	for (int c = 0; c < table_size; c++)
+		minHeap.push(new MinHeapNode((char)c, freqs[c]));
+	while (minHeap.size() != 1)
+	{
+		MinHeapNode* left = minHeap.top();
+		minHeap.pop();
+
+		MinHeapNode* right = minHeap.top();
+		minHeap.pop();
+
+		MinHeapNode* parent = new MinHeapNode('*', left->freq + right->freq);
+		parent->left = left;
+		parent->right = right;
+		minHeap.push(parent);
+	}
+	return minHeap.top();
+}
+
+
+
+
+
+// 在二进制文件中写入 Huffman 树
+void writeTree(MinHeapNode* root)
+{
+	stack<MinHeapNode *> s;
+	s.push(root);
+
+	while (!s.empty())
+	{
+		MinHeapNode* pnode = s.top();
+		s.pop();
+		if (IsLeaf(pnode))
+		{
+			BinaryStdOut::write(true);
+			BinaryStdOut::write((char)pnode->symbol);
+		}
+		else
+		{
+			BinaryStdOut::write(false);
+			s.push(pnode->right);
+			s.push(pnode->left);
+		}
+	}
+}
+
+
+
+// 从二进制文件中读取 Huffman 树
+MinHeapNode* readTree()
+{
+	MinHeapNode* root = new MinHeapNode('*', 0, nullptr, nullptr);
+	stack<MinHeapNode **> s;
+	s.push(&root);
+
+	while (!s.empty())
+	{
+		MinHeapNode** ppnode = s.top();
+		s.pop();
+		if (BinaryStdIn::readBool())
+			(*ppnode)->symbol = BinaryStdIn::readChar();
+		else
+		{
+			(*ppnode)->left = new MinHeapNode('*', 0, nullptr, nullptr);
+			(*ppnode)->right = new MinHeapNode('*', 0, nullptr, nullptr);
+			s.push(&(*ppnode)->right);
+			s.push(&(*ppnode)->left);
+		}
+	}
+	return root;
 }
 
 
@@ -136,64 +154,173 @@ void HuffmanCodes(char* symbols, size_t* freqs, int size)
 }
 
 
-
-// 构造 Huffman 树
-MinHeapNode* buildTree(vector<size_t>& freqs)
+static struct pair
 {
-	priority_queue<MinHeapNode*, vector<MinHeapNode*>, compare> minHeap;
-	for (int c = 0; c < table_size; c++)
-		minHeap.push(new MinHeapNode((char)c, freqs[c]));
-	while (minHeap.size() != 1)
-	{
-		MinHeapNode* left = minHeap.top();
-		minHeap.pop();
+	MinHeapNode* ptr;
+	string str;
+	pair(MinHeapNode* ptr, string str) :ptr(ptr),str(str){};
+};
 
-		MinHeapNode* right = minHeap.top();
-		minHeap.pop();
-
-		MinHeapNode* parent = new MinHeapNode('*', left->freq + right->freq);
-		parent->left = left;
-		parent->right = right;
-		minHeap.push(parent);
-	}
-	return minHeap.top();
-}
 
 
 // 构造 Huffman 编码
-void buildCode(vector<string>& code_table, MinHeapNode* root, string huffman_code)
+void buildCode(vector<string>& code_table, MinHeapNode* root)
 {
-	if (IsLeaf(root))
+	pair cp(root, "");
+	stack<pair> s;
+	s.push(cp);
+
+	while (!s.empty())
 	{
-		code_table[root->symbol] = huffman_code;
-		return;
+		pair temp = s.top();
+		s.pop();
+
+		if (IsLeaf(temp.ptr))
+			code_table[(unsigned char)(temp.ptr)->symbol] = temp.str;
+		else
+		{
+			s.push(pair(temp.ptr->right, temp.str + '1'));
+			s.push(pair(temp.ptr->left, temp.str + '0'));
+		}
 	}
-	buildCode(code_table, root->left, huffman_code + '0');
-	buildCode(code_table, root->right, huffman_code + '1');
 }
 
 
 
-// 在二进制文件中写入 Huffman 树
-void writeTree(MinHeapNode* root)
+void Huffman::compress(string filename)
 {
-	if (IsLeaf(root))
+	if (filename == "")
 	{
-		BinaryStdOut::write(true);
-		BinaryStdOut::write((Byte)root->symbol);
-		return;
+		cout << "输入你想压缩的文件: ";
+		cin >> filename;
 	}
-	BinaryStdOut::write(false);
-	writeTree(root->left);
-	writeTree(root->right);
+	BinaryStdIn::readFile(filename);
+	char content[READ_SIZE];
+	size_t input_length = 0;
+	vector<size_t> freqs(table_size);
+
+	cout << "正在读取并分析文件...";
+	while (!BinaryStdIn::feof())
+	{	// 获取文件内容, 计算每个字节的频率
+		
+		int count;
+		input_length += (count = BinaryStdIn::readKB(content));
+		
+		for (int i = 0; i < count; i++)
+			freqs[(int)(unsigned char)content[i]]++;
+	}
+	cout << "完成" << endl;
+	BinaryStdIn::close();
+
+	// 统计完之后再次打开文件
+	BinaryStdIn::readFile(filename);
+
+	// 新建一个文件准备写入压缩后的文件
+	filename += ".dat";
+	BinaryStdOut::writeFile(filename);
+
+	// 构建 Huffman 编码树
+	cout << "正在建立哈夫曼树...";
+	MinHeapNode* root = buildTree(freqs);
+	cout << "完成" << endl;
+
+	// 构建编码表
+	cout << "正在构建编码表...";
+	vector<string> st(table_size);
+	buildCode(st, root);
+	cout << "完成" << endl;
+
+
+	// 在二进制文件中写入编码树
+	cout << "正在写入编码树...";
+	writeTree(root);
+	cout << "完成" << endl;
+
+
+
+	// 在二进制文件中写入编码的字节数
+	BinaryStdOut::write(input_length);
+
+	// 用 Huffman code 编码输入文件
+	double percent = 1.0;
+	cout << "正在写入数据..." << endl;
+	for (size_t i = 0; i < input_length; i++)
+	{
+		if (abs(100.0 * i / input_length - percent) < 1e-6)
+		{
+			cout << "已写入 " << percent << "%。\r";
+			percent += 1.0;
+		}
+
+
+		unsigned char ch = BinaryStdIn::readChar();
+		if (!BinaryStdIn::feof())
+		{
+			string code = st[ch];
+			for (int j = 0; j < code.size(); j++)
+				if (code.at(j) == '1')
+					BinaryStdOut::write(true);
+				else
+					BinaryStdOut::write(false);
+		}
+	}
+	cout << "写入完成            " << endl;
+	BinaryStdOut::close();
+	BinaryStdIn::close();
+	cout << "压缩完成" << endl;
 }
 
 
 
-// 从二进制文件中读取 Huffman 树
-MinHeapNode* readTree()
+void Huffman::decompress(string filename)
 {
-	if (BinaryStdIn::readBool())
-		return new MinHeapNode(BinaryStdIn::readChar(), 0, nullptr, nullptr);
-	return new MinHeapNode('*', 0, readTree(), readTree());
+	if (filename == "")
+	{
+		cout << "输入你想解压的文件: ";
+		cin >> filename;
+	}
+	BinaryStdIn::readFile(filename);
+	cout << "请为解压文件命名: ";
+	cin >> filename;
+	BinaryStdOut::writeFile(filename);
+
+	// 读取编码树
+	cout << "正在读取编码树...";
+	MinHeapNode* root = readTree();
+	cout << "完成" << endl;
+
+	// 读取文件大小
+	cout << "正在读取文件大小...";
+	size_t length = BinaryStdIn::readSize_t();
+	cout << "完成" << endl;
+
+	// 根据编码树解压文件
+	double percent = 1.0;
+	cout << "正在根据编码树解压文件..." << endl;
+	for (size_t i = 0; i < length; i++)
+	{
+		if (abs(100.0 * i / length - percent) < 1e-6)
+		{
+			cout << "已解压 " << percent << "%。\r";
+			percent += 1.0;
+		}
+
+		MinHeapNode* x = root;
+		while (!IsLeaf(x))
+			if (BinaryStdIn::readBool())
+				x = x->right;
+			else
+				x = x->left;
+		BinaryStdOut::write((char)x->symbol);
+	}
+	cout << "完成            " << endl;
+	BinaryStdOut::close();
+	BinaryStdIn::close();
+	cout << "解压完成" << endl;
 }
+
+
+
+
+
+
